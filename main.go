@@ -28,13 +28,13 @@ func main() {
         BasalInsulinUsed: false,
     }
 
-    err := writeEntry(myEntry)
+    err := writeEntryFile(myEntry)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error from writeEntry: %q", err)
+        fmt.Fprintf(os.Stderr, "Error from writeEntry: %q\n", err)
     }
 
-    err = writeEntry(myEntry2)
+    err = writeEntryFile(myEntry2)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error from writeEntry: %q", err)
+        fmt.Fprintf(os.Stderr, "Error from writeEntry: %q\n", err)
     }
 }
