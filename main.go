@@ -30,11 +30,22 @@ func main() {
 
     err := writeEntryFile(myEntry)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error from writeEntry: %q\n", err)
+        fmt.Fprintf(os.Stderr, "Error from writeEntryFile: %q\n", err)
     }
 
     err = writeEntryFile(myEntry2)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error from writeEntry: %q\n", err)
+        fmt.Fprintf(os.Stderr, "Error from writeEntryFile: %q\n", err)
     }
+
+    entryOne, err := readEntryFile(2023, 1, 15)
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Error from readEntryFile: %q\n", err)
+    }
+    fmt.Println(entryOne)
+    entryTwo, err := readEntryFile(2023, 11, 2)
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Error from readEntryFile: %q\n", err)
+    }
+    fmt.Println(entryTwo)
 }
