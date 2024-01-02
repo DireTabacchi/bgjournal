@@ -17,7 +17,7 @@ type Entry struct {
 
 type TimeDate struct {
     Hour, Minute int
-    Day, Month, Year int
+    Year, Month, Day int
 }
 
 // writeEntry takes an Entry and writes it to a file. The filename is the Year,
@@ -38,13 +38,13 @@ func writeEntryFile(e Entry) error {
     }
     os.Chdir(yearDirName)
 
-    monthDirName := formatDayMonth(e.TimeAndDate.Month)
+    monthDirName := formatTwoDigitDateTime(e.TimeAndDate.Month)
     if _, err = os.ReadDir(monthDirName); err != nil {
         os.Mkdir(monthDirName, 0766)
     }
     os.Chdir(monthDirName)
 
-    fileName := formatDayMonth(e.TimeAndDate.Day)
+    fileName := formatTwoDigitDateTime(e.TimeAndDate.Day)
 
     jsonEntry, err := json.Marshal(e)
     if err != nil {
@@ -65,15 +65,16 @@ func writeEntryFile(e Entry) error {
 func readEntryFile(year int, month int, day int) (Entry, error) {
     currentDir, err := os.Getwd()
     if err != nil {
-        return Entry{}, fmt.Errorf("writeEntry: error getting directory: %q", err)
+        return Entry{}, fmt.Errorf("writeEntry: error getting directory: %q",
+            err)
     }
 
     if err = changeEntriesDir(); err != nil {
         return Entry{}, err
     }
     yearDirName := strconv.FormatInt(int64(year), 10)
-    monthDirName := formatDayMonth(month)
-    fileName := formatDayMonth(day)
+    monthDirName := formatTwoDigitDateTime(month)
+    fileName := formatTwoDigitDateTime(day)
     
     if err := os.Chdir(yearDirName); err != nil {
         return Entry{}, fmt.Errorf("Error finding year directory: %q", err)
@@ -100,7 +101,7 @@ func readEntryFile(year int, month int, day int) (Entry, error) {
 
 // Given an integer, return a string representing the numeric representation of
 // that day/month. Numbers < 10 get a prepended "0".
-func formatDayMonth(m int) string {
+func formatTwoDigitDateTime(m int) string {
     if m < 10 {
         return fmt.Sprintf("0%d", m)
     }
@@ -143,8 +144,10 @@ func createFileName(e Entry) string {
     var fileNameParts []string
     fileNameParts = append(fileNameParts,
         strconv.FormatInt(int64(e.TimeAndDate.Year), 10))
-    fileNameParts = append(fileNameParts, formatDayMonth(e.TimeAndDate.Month))
-    fileNameParts = append(fileNameParts, formatDayMonth(e.TimeAndDate.Day))
+    fileNameParts = append(fileNameParts,
+        formatTwoDigitDateTime(e.TimeAndDate.Month))
+    fileNameParts = append(fileNameParts,
+        formatTwoDigitDateTime(e.TimeAndDate.Day))
     fileName := strings.Join(fileNameParts, "")
     return fileName
 }
