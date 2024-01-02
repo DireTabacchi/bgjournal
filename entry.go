@@ -38,17 +38,13 @@ func writeEntryFile(e Entry) error {
     }
     os.Chdir(yearDirName)
 
-    monthDirName := strings.Join(
-        []string{
-            strconv.FormatInt(int64(e.TimeAndDate.Year), 10),
-            formatDayMonth(e.TimeAndDate.Month)},
-        "")
+    monthDirName := formatDayMonth(e.TimeAndDate.Month)
     if _, err = os.ReadDir(monthDirName); err != nil {
         os.Mkdir(monthDirName, 0766)
     }
     os.Chdir(monthDirName)
 
-    fileName := createFileName(e)
+    fileName := formatDayMonth(e.TimeAndDate.Day)
 
     jsonEntry, err := json.Marshal(e)
     if err != nil {
@@ -76,12 +72,8 @@ func readEntryFile(year int, month int, day int) (Entry, error) {
         return Entry{}, err
     }
     yearDirName := strconv.FormatInt(int64(year), 10)
-    monthDirName := yearDirName + formatDayMonth(month)
-    fileName := strings.Join(
-        []string{
-            monthDirName,
-            formatDayMonth(day),
-        }, "")
+    monthDirName := formatDayMonth(month)
+    fileName := formatDayMonth(day)
     
     if err := os.Chdir(yearDirName); err != nil {
         return Entry{}, fmt.Errorf("Error finding year directory: %q", err)
