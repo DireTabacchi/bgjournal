@@ -31,7 +31,7 @@ Currently, the application only contains tests for the implemented features.
 
 - [X] File writing.
 - [X] File reading.
-- [ ] User can interactively create new entries.
+- [X] User can interactively create new entries.
 - [ ] User can interactively query entries.
 - [ ] Statistics are displayed for each entry.
     - [ ] Current daily average.
@@ -40,6 +40,9 @@ Currently, the application only contains tests for the implemented features.
     - [ ] Weekly BG checks per day.
 - [ ] Statistics displayed for a selected month.
 - [ ] Statistics compared to the previous month.
+- [ ] Statistics displayed for a selected week of a month.
+- [ ] Statistics comparied to the previous month.
+- [ ] User can add notes to journal entries.
 
 ## Feature Requests/Bugs
 
