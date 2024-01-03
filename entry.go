@@ -9,7 +9,7 @@ import(
 )
 
 type Entry struct {
-    TimeAndDate TimeDate
+    TimeDate
     BgLevel int
     InsulinAmount, BasalInsulinAmount int
     BasalInsulinUsed bool
@@ -32,26 +32,26 @@ func writeEntryFile(e Entry) error {
         return err
     }
 
-    yearDirName := strconv.FormatInt(int64(e.TimeAndDate.Year), 10)
+    yearDirName := strconv.FormatInt(int64(e.Year), 10)
     if _, err = os.ReadDir(yearDirName); err != nil {
         os.Mkdir(yearDirName, 0766)
     }
     os.Chdir(yearDirName)
 
-    monthDirName := formatTwoDigitDateTime(e.TimeAndDate.Month)
+    monthDirName := formatTime(e.Month)
     if _, err = os.ReadDir(monthDirName); err != nil {
         os.Mkdir(monthDirName, 0766)
     }
     os.Chdir(monthDirName)
 
-    dayDirName := formatTwoDigitDateTime(e.TimeAndDate.Day)
+    dayDirName := formatTime(e.Day)
     if _, err = os.ReadDir(dayDirName); err != nil {
         os.Mkdir(dayDirName, 0766)
     }
     os.Chdir(dayDirName)
 
-    fileName := formatTwoDigitDateTime(e.TimeAndDate.Hour) +
-        formatTwoDigitDateTime(e.TimeAndDate.Minute)
+    fileName := formatTime(e.Hour) +
+        formatTime(e.Minute)
 
     jsonEntry, err := json.Marshal(e)
     if err != nil {
@@ -81,9 +81,9 @@ func readEntryFile(year, month, day, hour, minute int) (Entry, error) {
         return Entry{}, err
     }
     yearDirName := strconv.FormatInt(int64(year), 10)
-    monthDirName := formatTwoDigitDateTime(month)
-    dayDirName := formatTwoDigitDateTime(day)
-    fileName := formatTwoDigitDateTime(hour) + formatTwoDigitDateTime(minute)
+    monthDirName := formatTime(month)
+    dayDirName := formatTime(day)
+    fileName := formatTime(hour) + formatTime(minute)
     
     if err := os.Chdir(yearDirName); err != nil {
         return Entry{}, fmt.Errorf("Error finding year directory: %q", err)
@@ -114,7 +114,7 @@ func readEntryFile(year, month, day, hour, minute int) (Entry, error) {
 
 // Given an integer, return a string representing the numeric representation of
 // that day/month/time-component. Numbers < 10 get a prepended "0".
-func formatTwoDigitDateTime(m int) string {
+func formatTime(m int) string {
     if m < 10 {
         return fmt.Sprintf("0%d", m)
     }
@@ -156,17 +156,68 @@ func changeEntriesDir() error {
 func printEntry(e Entry) {
     fmt.Printf("\n========================\n")
     fmt.Printf("%d-%s-%s %s:%s\n",
-        e.TimeAndDate.Year,
-        formatTwoDigitDateTime(e.TimeAndDate.Month),
-        formatTwoDigitDateTime(e.TimeAndDate.Day),
-        formatTwoDigitDateTime(e.TimeAndDate.Hour),
-        formatTwoDigitDateTime(e.TimeAndDate.Minute),
+        e.Year,
+        formatTime(e.Month),
+        formatTime(e.Day),
+        formatTime(e.Hour),
+        formatTime(e.Minute),
     )
     fmt.Println("----------------")
-    fmt.Printf("Blood Glucose Level: %d\n", e.BgLevel)
+    fmt.Printf("Blood Glucose Level: %d mg/dL\n", e.BgLevel)
     fmt.Printf("Insulin taken: %d\n", e.InsulinAmount)
     if e.BasalInsulinUsed {
         fmt.Printf("Basal Insulin taken: %d\n", e.BasalInsulinAmount)
     }
     fmt.Printf("========================\n\n")
+}
+
+func printDay(entries []Entry) {
+    year := entries[0].Year
+    month := formatTime(entries[0].Month)
+    day := formatTime(entries[0].Day)
+    average, _ := dailyAverage(year, entries[0].Month, entries[0].Day)
+
+    fmt.Printf("\n========================================================" + 
+        "=========\n")
+    fmt.Printf("%d-%s-%s\n", year, month, day)
+    fmt.Println("----------")
+    fmt.Printf("Time - Blood Glucose Level >> " +
+        "Insulin Taken (Basal Insulin Taken)\n")
+    for _, entry := range entries {
+        fmt.Printf("%s:%s - %d mg/dL >> %d",
+        formatTime(entry.Hour), formatTime(entry.Minute), entry.BgLevel,
+            entry.InsulinAmount)
+        if entry.BasalInsulinUsed {
+            fmt.Printf(" (%d)\n", entry.BasalInsulinAmount)
+        } else {
+            fmt.Println()
+        }
+    }
+
+    fmt.Printf("\nAverage Blood Glucose Level: %.2f mg/dL\n", average)
+    fmt.Printf("============================================================" + 
+        "=====\n\n")
+}
+
+func parseFileName(name string) (hour int, minute int) {
+    tmp, _ := strconv.ParseInt(name, 10, 0)
+    hour = int(tmp) / 100
+    minute = int(tmp) - (hour * 100)
+    return hour, minute
+}
+
+func formatDayPath(year, month, day int) string {
+    currentDir, _ := os.Getwd()
+    if err := changeEntriesDir(); err != nil {
+        return ""
+    }
+    dayPath := strconv.FormatInt(int64(year), 10) + "/" +
+        formatTime(month) + "/" +
+        formatTime(day)
+    if err := os.Chdir(dayPath); err != nil {
+        return ""
+    }
+
+    os.Chdir(currentDir)
+    return dayPath
 }

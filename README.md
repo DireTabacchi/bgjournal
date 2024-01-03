@@ -34,7 +34,7 @@ Currently, the application only contains tests for the implemented features.
 - [X] User can interactively create new entries.
 - [X] User can interactively query entries.
 - [ ] Statistics are displayed for each entry.
-    - [ ] Current daily average.
+    - [X] Average for a day.
     - [ ] Current weekly average (for a day's week).
     - [ ] Weekly average compared to previous week.
     - [ ] Weekly BG checks per day.

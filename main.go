@@ -32,6 +32,24 @@ func main() {
             }
         case "2":
             queryEntry()
+        case "3":
+            year, month, day, err := queryDay()
+            if err != nil {
+                if err.Error() == "no entries" { continue }
+                fmt.Fprintf(os.Stderr, "An error occurred finding the day: %q",
+                    err)
+            }
+            currentDir, _ := os.Getwd()
+            changeEntriesDir()
+            dirEntries, _ := os.ReadDir(formatDayPath(year, month, day))
+            os.Chdir(currentDir)
+            var entries []Entry
+            for _, entryFile :=range dirEntries {
+                hour, minute := parseFileName(entryFile.Name())
+                entry, _ := readEntryFile(year, month, day, hour, minute)
+                entries = append(entries, entry)
+            }
+            printDay(entries)
         default:
             fmt.Printf("Unrecognized option: %s\n\n", userChoice)
         }
