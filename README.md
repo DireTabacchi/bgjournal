@@ -32,7 +32,7 @@ Currently, the application only contains tests for the implemented features.
 - [X] File writing.
 - [X] File reading.
 - [X] User can interactively create new entries.
-- [ ] User can interactively query entries.
+- [X] User can interactively query entries.
 - [ ] Statistics are displayed for each entry.
     - [ ] Current daily average.
     - [ ] Current weekly average (for a day's week).
