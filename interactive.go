@@ -22,13 +22,17 @@ func createEntry() error {
     var newEntry Entry
     var fieldSet bool
 
-    fmt.Println("\nEnter the following to create a new entry.")
+    fmt.Println("\nEnter the following to create a new entry.\n" +
+        "Enter q to quit.")
 
     // Get the Year
     for fieldSet = false; !fieldSet; {
         fmt.Print("Year: ")
         year, set, err := promptNumberField()
         if err != nil {
+            if err.Error() == "quit" {
+                return nil
+            }
             return err
         }
         fieldSet = set
@@ -42,6 +46,9 @@ func createEntry() error {
         fmt.Print("Month: ")
         month, set, err := promptNumberField()
         if err != nil {
+            if err.Error() == "quit" {
+                return nil
+            }
             return err
         }
         fieldSet = set
@@ -59,6 +66,9 @@ func createEntry() error {
         fmt.Print("Day: ")
         day, set, err := promptNumberField()
         if err != nil {
+            if err.Error() == "quit" {
+                return nil
+            }
             return err
         }
         fieldSet = set
@@ -76,6 +86,9 @@ func createEntry() error {
         fmt.Print("Hour (24-hour; 0 is midnight): ")
         hour, set, err := promptNumberField()
         if err != nil {
+            if err.Error() == "quit" {
+                return nil
+            }
             return err
         }
         fieldSet = set
@@ -93,6 +106,9 @@ func createEntry() error {
         fmt.Print("Minute: ")
         minute, set, err := promptNumberField()
         if err != nil {
+            if err.Error() == "quit" {
+                return nil
+            }
             return err
         }
         fieldSet = set
@@ -109,6 +125,9 @@ func createEntry() error {
         fmt.Print("Blood Glucose level: ")
         bg, set, err := promptNumberField()
         if err != nil {
+            if err.Error() == "quit" {
+                return nil
+            }
             return err
         }
         fieldSet = set
@@ -125,6 +144,9 @@ func createEntry() error {
         fmt.Print("Units of insulin taken: ")
         insulin, set, err := promptNumberField()
         if err != nil {
+            if err.Error() == "quit" {
+                return nil
+            }
             return err
         }
         fieldSet = set
@@ -149,10 +171,15 @@ func createEntry() error {
             newEntry.BasalInsulinUsed = false
             newEntry.BasalInsulinAmount = 0
             break
+        } else if userData == "q" {
+            return nil
         }
         fmt.Print("Units of basal insulin: ")
         bInsulin, set, err := promptNumberField()
         if err != nil {
+            if err.Error() == "quit" {
+                return nil
+            }
             return err
         }
         fieldSet = set
@@ -203,19 +230,21 @@ func queryEntry() error {
         return nil
     }
 
-    //in := bufio.NewReader(os.Stdin)
 
     var year, month, day, hour, minute int
-    //var hour, minute int
 
     for fieldSet := false; !fieldSet; {
         fmt.Println("Choose the Year:")
         for i, de := range dirEntries {
             fmt.Printf("[%d] %s\n", i+1, de.Name())
         }
+        fmt.Println("[q] Quit")
         printPrompt()
         promptYear, set, err := promptNumberField()
         if err != nil {
+            if err.Error() == "quit" {
+                return nil
+            }
             return err
         }
         fieldSet = set
@@ -244,9 +273,13 @@ func queryEntry() error {
         for i, de := range dirEntries {
             fmt.Printf("[%d] %s\n", i+1, de.Name())
         }
+        fmt.Println("[q] Quit")
         printPrompt()
         promptMonth, set, err := promptNumberField()
         if err != nil {
+            if err.Error() == "quit" {
+                return nil
+            }
             return err
         }
         fieldSet = set
@@ -275,9 +308,13 @@ func queryEntry() error {
         for i, de := range dirEntries {
             fmt.Printf("[%d] %s\n", i+1, de.Name())
         }
+        fmt.Println("[q] Quit")
         printPrompt()
         promptDay, set, err := promptNumberField()
         if err != nil {
+            if err.Error() == "quit" {
+                return nil
+            }
             return err
         }
         fieldSet = set
@@ -307,9 +344,13 @@ func queryEntry() error {
         for i, de := range dirEntries {
             fmt.Printf("[%d] %s\n", i+1, de.Name())
         }
+        fmt.Println("[q] Quit")
         printPrompt()
         promptEntry, set, err := promptNumberField()
         if err != nil {
+            if err.Error() == "quit" {
+                return nil
+            }
             return err
         }
         fieldSet = set
@@ -349,6 +390,9 @@ func promptNumberField() (int,  bool, error) {
         return 0, false, fmt.Errorf("An error occurred: %q", err)
     }
     userData = strings.TrimSuffix(userData, "\n")
+    if strings.Contains(userData, "q") {
+        return -1, true, fmt.Errorf("quit")
+    }
     tmp, err := strconv.ParseInt(userData, 10, 0)
     if err != nil {
         if strings.Contains(err.Error(), "invalid syntax") {
