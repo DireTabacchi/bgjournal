@@ -5,7 +5,7 @@ import(
     "fmt"
     "os"
     "strconv"
-    "strings"
+    //"strings"
 )
 
 type Entry struct {
@@ -20,8 +20,8 @@ type TimeDate struct {
     Year, Month, Day int
 }
 
-// writeEntry takes an Entry and writes it to a file. The filename is the Year,
-// Month, and Day of the TimeAndDate in the Entry.
+// writeEntry takes an Entry and writes it to a file. The filename is the Hour,
+// and Minute of the Entry, and is found in the Year/Month/Day directory.
 func writeEntryFile(e Entry) error {
     currentDir, err := os.Getwd()
     if err != nil {
@@ -44,7 +44,14 @@ func writeEntryFile(e Entry) error {
     }
     os.Chdir(monthDirName)
 
-    fileName := formatTwoDigitDateTime(e.TimeAndDate.Day)
+    dayDirName := formatTwoDigitDateTime(e.TimeAndDate.Day)
+    if _, err = os.ReadDir(dayDirName); err != nil {
+        os.Mkdir(dayDirName, 0766)
+    }
+    os.Chdir(dayDirName)
+
+    fileName := formatTwoDigitDateTime(e.TimeAndDate.Hour) +
+        formatTwoDigitDateTime(e.TimeAndDate.Minute)
 
     jsonEntry, err := json.Marshal(e)
     if err != nil {
@@ -61,8 +68,9 @@ func writeEntryFile(e Entry) error {
 }
 
 // readEntryFile will find the Entry file associated with the given year,
-// month, and day, read it, and return an Entry with that file's information.
-func readEntryFile(year int, month int, day int) (Entry, error) {
+// month, day, hour, and minute, read it, and return an Entry with that file's
+// information.
+func readEntryFile(year, month, day, hour, minute int) (Entry, error) {
     currentDir, err := os.Getwd()
     if err != nil {
         return Entry{}, fmt.Errorf("writeEntry: error getting directory: %q",
@@ -74,7 +82,8 @@ func readEntryFile(year int, month int, day int) (Entry, error) {
     }
     yearDirName := strconv.FormatInt(int64(year), 10)
     monthDirName := formatTwoDigitDateTime(month)
-    fileName := formatTwoDigitDateTime(day)
+    dayDirName := formatTwoDigitDateTime(day)
+    fileName := formatTwoDigitDateTime(hour) + formatTwoDigitDateTime(minute)
     
     if err := os.Chdir(yearDirName); err != nil {
         return Entry{}, fmt.Errorf("Error finding year directory: %q", err)
@@ -82,6 +91,10 @@ func readEntryFile(year int, month int, day int) (Entry, error) {
 
     if err := os.Chdir(monthDirName); err != nil {
         return Entry{}, fmt.Errorf("Error finding month directory: %q", err)
+    }
+
+    if err := os.Chdir(dayDirName); err != nil {
+        return Entry{}, fmt.Errorf("Error finding day directory: %q", err)
     }
     
     contents, err := os.ReadFile(fileName)
@@ -100,7 +113,7 @@ func readEntryFile(year int, month int, day int) (Entry, error) {
 }
 
 // Given an integer, return a string representing the numeric representation of
-// that day/month. Numbers < 10 get a prepended "0".
+// that day/month/time-component. Numbers < 10 get a prepended "0".
 func formatTwoDigitDateTime(m int) string {
     if m < 10 {
         return fmt.Sprintf("0%d", m)
@@ -140,15 +153,20 @@ func changeEntriesDir() error {
     return nil
 }
 
-func createFileName(e Entry) string {
-    var fileNameParts []string
-    fileNameParts = append(fileNameParts,
-        strconv.FormatInt(int64(e.TimeAndDate.Year), 10))
-    fileNameParts = append(fileNameParts,
-        formatTwoDigitDateTime(e.TimeAndDate.Month))
-    fileNameParts = append(fileNameParts,
-        formatTwoDigitDateTime(e.TimeAndDate.Day))
-    fileName := strings.Join(fileNameParts, "")
-    return fileName
+func printEntry(e Entry) {
+    fmt.Printf("\n========================\n")
+    fmt.Printf("%d-%s-%s %s:%s\n",
+        e.TimeAndDate.Year,
+        formatTwoDigitDateTime(e.TimeAndDate.Month),
+        formatTwoDigitDateTime(e.TimeAndDate.Day),
+        formatTwoDigitDateTime(e.TimeAndDate.Hour),
+        formatTwoDigitDateTime(e.TimeAndDate.Minute),
+    )
+    fmt.Println("----------------")
+    fmt.Printf("Blood Glucose Level: %d\n", e.BgLevel)
+    fmt.Printf("Insulin taken: %d\n", e.InsulinAmount)
+    if e.BasalInsulinUsed {
+        fmt.Printf("Basal Insulin taken: %d\n", e.BasalInsulinAmount)
+    }
+    fmt.Printf("========================\n\n")
 }
-

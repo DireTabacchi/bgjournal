@@ -30,8 +30,10 @@ func main() {
             if err != nil {
                 fmt.Fprintf(os.Stderr, "%q\n", err)
             }
+        case "2":
+            queryEntry()
         default:
-            fmt.Printf("Unrecognized option: %s\n", userChoice)
+            fmt.Printf("Unrecognized option: %s\n\n", userChoice)
         }
     }
     //myEntry := Entry{
