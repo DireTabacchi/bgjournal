@@ -12,6 +12,7 @@ func printCommands() {
     fmt.Println("[1] Create a new entry")
     fmt.Println("[2] Look for an entry")
     fmt.Println("[3] Stats for a day")
+    fmt.Println("[4] Stats for a week")
     fmt.Println("[q] Quit")
 }
 
@@ -526,7 +527,122 @@ func queryDay() (int, int, int, error) {
                 return 0, 0, 0, err
             }
             day = int(tmp)
-            os.Chdir(dirEntries[promptDay].Name())
+        }
+    }
+
+    os.Chdir(currentDir)
+    return year, month, day, nil
+}
+
+// queryMonthQuarter helps the user find a specific week of a month. Each month
+// starts on the 1st, and every 7th day after the 1st (8th, 15th, etc.) may be
+// selected. queryMonthQuarter return the year, month, and day for the selected
+// week.
+func queryMonthQuarter() (int, int, int, error) {
+    currentDir, _ := os.Getwd()
+    changeEntriesDir()
+
+    dirEntries, _ := os.ReadDir(".")
+
+    if len(dirEntries) < 1 {
+        fmt.Println("No entries to find. Create an entry to find entries.")
+        return 0, 0, 0, fmt.Errorf("no entries")
+    }
+    
+    var year, month, day int
+
+    for fieldSet := false; !fieldSet; {
+        fmt.Println("Choose the Year:")
+        for i, de := range dirEntries {
+            fmt.Printf("[%d] %s \n", i+1, de.Name())
+        }
+        fmt.Println("[q] Quit")
+        printPrompt()
+        promptYear, set, err := promptNumberField()
+        if err != nil {
+            if err.Error() == "quit" {
+                return 0, 0, 0, fmt.Errorf("quit")
+            }
+            return 0, 0, 0, err
+        }
+        fieldSet = set
+        promptYear -= 1
+        if promptYear < 0 || promptYear >= len(dirEntries) {
+            fieldSet = false
+            fmt.Println("Please choose a valid option.")
+        }
+
+        if fieldSet {
+            tmp, _ := strconv.ParseInt(dirEntries[promptYear].Name(), 10, 0)
+            year = int(tmp)
+            os.Chdir(dirEntries[promptYear].Name())
+        }
+    }
+
+    dirEntries, _ = os.ReadDir(".")
+
+    for fieldSet := false; !fieldSet; {
+        fmt.Println("Choose the Month:")
+        for i, de := range dirEntries {
+            fmt.Printf("[%d] %s\n", i+1, de.Name())
+        }
+        fmt.Println("[q] Quit")
+        printPrompt()
+        promptMonth, set, err := promptNumberField()
+        if err != nil {
+            if err.Error() == "quit" {
+                return 0, 0, 0, fmt.Errorf("quit")
+            }
+            return 0, 0, 0, err
+        }
+        fieldSet = set
+        promptMonth -= 1
+        if promptMonth < 0 || promptMonth >= len(dirEntries) {
+            fieldSet = false
+            fmt.Println("Please choose a valid option.")
+        }
+
+        if fieldSet {
+            tmp, err := strconv.ParseInt(dirEntries[promptMonth].Name(), 10, 0)
+            if err != nil {
+                return 0, 0, 0, err
+            }
+            month = int(tmp)
+            os.Chdir(dirEntries[promptMonth].Name())
+        }
+    }
+
+    dirEntries, _ = os.ReadDir(".")
+
+    for fieldSet := false; !fieldSet; {
+        optNum := 1
+        fmt.Println("Choose the Day:")
+        for i := 0; i < len(dirEntries); i+=7 {
+            fmt.Printf("[%d] %s\n", optNum, dirEntries[i].Name())
+            optNum++
+        }
+        fmt.Println("[q] Quit")
+        printPrompt()
+        promptDay, set, err := promptNumberField()
+        if err != nil {
+            if err.Error() == "quit" {
+                return 0, 0, 0, fmt.Errorf("quit")
+            }
+            return 0, 0, 0, err
+        }
+        fieldSet = set
+        promptDay -= 1
+        if promptDay < 0 || promptDay >= optNum {
+            fieldSet = false
+            fmt.Println("Please choose a valid option.")
+        }
+
+        if fieldSet {
+            tmp, err := strconv.ParseInt(dirEntries[promptDay*7].Name(), 10, 0)
+            if err != nil {
+                return 0, 0, 0, err
+            }
+            day = int(tmp)
         }
     }
 

@@ -5,7 +5,7 @@ import(
     "fmt"
     "os"
     "strconv"
-    //"strings"
+    "strings"
 )
 
 type Entry struct {
@@ -73,7 +73,7 @@ func writeEntryFile(e Entry) error {
 func readEntryFile(year, month, day, hour, minute int) (Entry, error) {
     currentDir, err := os.Getwd()
     if err != nil {
-        return Entry{}, fmt.Errorf("writeEntry: error getting directory: %q",
+        return Entry{}, fmt.Errorf("readEntryFile: error getting directory: %q",
             err)
     }
 
@@ -175,7 +175,7 @@ func printDay(entries []Entry) {
     year := entries[0].Year
     month := formatTime(entries[0].Month)
     day := formatTime(entries[0].Day)
-    average, _ := dailyAverage(year, entries[0].Month, entries[0].Day)
+    average := bgAverage(entries)
 
     fmt.Printf("\n========================================================" + 
         "=========\n")
@@ -194,9 +194,82 @@ func printDay(entries []Entry) {
         }
     }
 
-    fmt.Printf("\nAverage Blood Glucose Level: %.2f mg/dL\n", average)
+    fmt.Printf("\nDay Average Blood Glucose Level: %.2f mg/dL\n", average)
     fmt.Printf("============================================================" + 
         "=====\n\n")
+}
+
+func printWeek(entries []Entry) {
+    average := bgAverage(entries)
+    fmt.Printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" +
+        "~~~~~~~~~\n")
+
+    for day := entries[0].Day; day < entries[0].Day + 7 && day <= 31; day++ {
+        var dayEntries []Entry
+        //dayEntries = make([]Entry, 0, 3)
+        for _, entry := range entries {
+            if entry.Day == day {
+                dayEntries = append(dayEntries, entry)
+            }
+        }
+        if len(dayEntries) > 0 {
+            printDay(dayEntries)
+        }
+    }
+
+    fmt.Printf("Week Average Blood Glucose Level: %.2f mg/dL\n", average)
+    fmt.Printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" +
+        "~~~~~~~~~\n\n")
+}
+
+// readEntryFilesN reads n days of entry files and returns a slice of Entry
+// read from those files. nDays includes the day given.
+func readEntryFilesNDays(year, month, day, nDays int) ([]Entry, error) {
+    currentDir, err := os.Getwd()
+    if err != nil {
+        return []Entry{}, fmt.Errorf("readEntryFile: error getting directory: %q",
+            err)
+    }
+
+    if err = changeEntriesDir(); err != nil {
+        return []Entry{}, err
+    }
+    yearDirName := strconv.FormatInt(int64(year), 10)
+    monthDirName := formatTime(month)
+    
+    if err := os.Chdir(yearDirName); err != nil {
+        return []Entry{}, fmt.Errorf("Error finding year directory: %q", err)
+    }
+
+    if err := os.Chdir(monthDirName); err != nil {
+        return []Entry{}, fmt.Errorf("Error finding month directory: %q", err)
+    }
+
+    var entries []Entry
+
+    for i := day; i < day + nDays && i <= 31; i++ {
+        dayDirName := formatTime(i)
+        dayEntries, err := os.ReadDir(dayDirName)
+        if err != nil {
+            if strings.Contains(err.Error(), "no such file or directory") {
+                continue
+            } else {
+                return []Entry{}, err
+            }
+        }
+        os.Chdir(dayDirName)
+        for _, entry := range dayEntries {
+            var newEntry Entry
+            contents, _ := os.ReadFile(entry.Name())
+            json.Unmarshal(contents, &newEntry)
+            entries = append(entries, newEntry)
+        }
+        os.Chdir("..")
+    }
+    
+    os.Chdir(currentDir)
+    return entries, nil
+
 }
 
 func parseFileName(name string) (hour int, minute int) {
